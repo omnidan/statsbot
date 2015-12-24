@@ -134,5 +134,8 @@ client.on('command', function (event) {
     case 'help':
       event.reply('https://github.com/omnidan/statsbot/blob/master/README.md')
       break
+    case 'emoji':
+      event.reply('https://github.com/omnidan/statsbot/blob/master/README.md#what-do-the-emoji-mean')
+      break
   }
 })
