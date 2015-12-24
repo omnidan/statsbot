@@ -2,7 +2,7 @@
 
 var log = require('log-simple')()
 
-var VERSION = '0.1.0'
+var VERSION = '0.1.2'
 log.info('statsbot v' + VERSION)
 
 // configuration
