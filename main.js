@@ -33,6 +33,43 @@ config.networks.forEach(function (network) {
 })
 
 // bot begins here
+function name (data) {
+  if (!data) return undefined
+  // FIXME: coffea-telegram workaround, channel should be .name not .title
+  return data.nick || data.name || data.title
+}
+
+// event handlers
+function processEvent (event, type) {
+  var c = name(event && event.channel)
+  var u = name(event && event.user)
+
+  if (c) {
+    if (!db.channels[c]) db.channels[c] = { users: {} }
+    if (!db.channels[c][type]) db.channels[c][type] = 0
+    db.channels[c][type]++
+
+    if (event.user) {
+      if (!db.channels[c].users[u]) db.channels[c].users[u] = {}
+      if (!db.channels[c].users[u][type]) db.channels[c].users[u][type] = 0
+      db.channels[c].users[u][type]++
+    }
+  }
+
+  if (u) {
+    if (!db.users[u]) db.users[u] = {}
+    if (!db.users[u][type]) db.users[u][type] = 0
+    db.users[u][type]++
+  }
+}
+
+function processEventFactory (type) {
+  return function (event) {
+    return processEvent(event, type)
+  }
+}
+
+// display stats
 function msgStats (data) {
   return (data && data.messages ? data.messages : 0) +
     ' ' + emoji.speech_balloon
@@ -44,45 +81,18 @@ function cmdStats (data) {
     ' ' + emoji.thought_balloon
 }
 
-function name (data) {
-  if (!data) return undefined
-  // FIXME: coffea-telegram workaround, channel should be .name not .title
-  return data.nick || data.name || data.title
-}
-
-function processEvent (event) {
-  var c = name(event && event.channel)
-  var u = name(event && event.user)
-
-  if (c) {
-    if (!db.channels[c]) db.channels[c] = { users: {}, commands: 0, messages: 0 }
-    if (event.cmd) db.channels[c].commands++
-    else db.channels[c].messages++
-
-    if (event.user) {
-      if (!db.channels[c].users[u]) db.channels[c].users[u] = { commands: 0, messages: 0 }
-      if (event.cmd) db.channels[c].users[u].commands++
-      else db.channels[c].users[u].messages++
-    }
-  }
-
-  if (u) {
-    if (!db.users[u]) db.users[u] = { commands: 0, messages: 0 }
-    if (event.cmd) db.users[u].commands++
-    else db.users[u].messages++
-  }
-}
-
 function showStats (what, data) {
   return 'Stats for "' + what + '": ' +
     msgStats(data) + ' | ' +
     cmdStats(data)
 }
 
-client.on('message', processEvent)
+
+// event listeners
+client.on('message', processEventFactory('messages'))
 
 client.on('command', function (event) {
-  processEvent(event)
+  processEvent(event, 'commands')
 
   var c = name(event && event.channel)
   var u = name(event && event.user)
