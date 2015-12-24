@@ -131,5 +131,8 @@ client.on('command', function (event) {
       } else repl = showStats(u, db.users[u])
       event.reply(repl)
       break
+    case 'help':
+      event.reply('https://github.com/omnidan/statsbot/blob/master/README.md')
+      break
   }
 })
