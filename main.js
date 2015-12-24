@@ -44,6 +44,8 @@ function processEvent (event, type) {
   var c = name(event && event.channel)
   var u = name(event && event.user)
 
+  log.debug('processing "' + type + '" event by "' + u + '" in "' + c + '"')
+
   if (c) {
     if (!db.channels[c]) db.channels[c] = { users: {} }
     if (!db.channels[c][type]) db.channels[c][type] = 0
@@ -70,9 +72,10 @@ function processEventFactory (type) {
 }
 
 // display stats
-function msgStats (data) {
-  return (data && data.messages ? data.messages : 0) +
-    ' ' + emoji.speech_balloon
+function stats (type, emoji) {
+  return function typedStats (data) {
+    return (data && data[type] ? data[type] : 0) + ' ' + emoji
+  }
 }
 
 function cmdStats (data) {
@@ -81,15 +84,33 @@ function cmdStats (data) {
     ' ' + emoji.thought_balloon
 }
 
-function showStats (what, data) {
-  return 'Stats for "' + what + '": ' +
-    msgStats(data) + ' | ' +
-    cmdStats(data)
+var msgStats = stats('messages', emoji.speech_balloon)
+var audioStats = stats('audio', emoji.sound)
+var videoStats = stats('video', emoji.movie_camera)
+var photoStats = stats('photo', emoji.mount_fuji)
+var stickerStats = stats('sticker', emoji.paperclip)
+
+function apply (arr, x) {
+  return arr.map(function (f) {
+    return f(x)
+  })
 }
 
+function showStats (what, data) {
+  return 'Stats for "' + what + '": ' +
+    apply(
+      [msgStats, cmdStats, stickerStats, photoStats, audioStats, videoStats]
+    , data)
+    .join(' | ')
+}
 
 // event listeners
 client.on('message', processEventFactory('messages'))
+client.on('audio', processEventFactory('audio'))
+client.on('voice', processEventFactory('audio'))
+client.on('video', processEventFactory('video'))
+client.on('photo', processEventFactory('photo'))
+client.on('sticker', processEventFactory('sticker'))
 
 client.on('command', function (event) {
   processEvent(event, 'commands')
