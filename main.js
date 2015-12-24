@@ -88,7 +88,7 @@ var msgStats = stats('messages', emoji.speech_balloon)
 var audioStats = stats('audio', emoji.sound)
 var videoStats = stats('video', emoji.movie_camera)
 var photoStats = stats('photo', emoji.mount_fuji)
-var stickerStats = stats('sticker', emoji.paperclip)
+var stickerStats = stats('sticker', emoji.rainbow)
 
 function apply (arr, x) {
   return arr.map(function (f) {
